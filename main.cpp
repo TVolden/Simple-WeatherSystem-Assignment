@@ -42,7 +42,7 @@ void setupParticles();
 
 void drawObjects(glm::mat4 model);
 void drawParticles(glm::mat4 model);
-glm::mat4 makeModel();
+glm::mat4 makeModel(GLFWwindow *window);
 
 // glfw and input functions
 // ------------------------
@@ -155,7 +155,7 @@ int main()
         // notice that we also need to clear the depth buffer (aka z-buffer) every new frame
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        auto model = makeModel();
+        auto model = makeModel(window);
 
         shaderProgram->use();
         drawObjects(model);
@@ -182,8 +182,10 @@ int main()
     return 0;
 }
 
-glm::mat4 makeModel() {
-    glm::mat4 projection = glm::perspectiveFov(70.0f, (float)SCR_WIDTH, (float)SCR_HEIGHT, .01f, 100.0f);
+glm::mat4 makeModel(GLFWwindow *window) {
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    glm::mat4 projection = glm::perspectiveFov(70.0f, (float)width, (float)height, .01f, 100.0f);
     glm::mat4 view = glm::lookAt(camPosition, camPosition + camForward, glm::vec3(0,1,0));
     return projection * view;
 }
@@ -196,6 +198,7 @@ void drawParticles(glm::mat4 model) {
     particleProgram->setFloat("gravity_offset", gravityOffset);
     particleProgram->setFloat("wind_offset", windOffset);
     particleProgram->setFloat("particle_density", particleDensity);
+    particleProgram->setVec3("perspective", camPosition);
     weather.drawParticles();
 }
 
@@ -386,18 +389,17 @@ void cursorInRange(float screenX, float screenY, int screenW, int screenH, float
     y = -yInRange; // flip screen space y axis
 }
 
-glm::vec2 prev = glm::vec2(0.0f, 0.0f);
-
 void cursor_input_callback(GLFWwindow* window, double posX, double posY){
     // TODO - rotate the camera position based on mouse movements
     //  if you decide to use the lookAt function, make sure that the up vector and the
     //  vector from the camera position to the lookAt target are not collinear
-    auto pos = glm::vec2(posX, posY);
-    auto diff = prev - pos;
-    prev = pos;
+    float x, y;
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    cursorInRange(posX, posY, width, height, 0, 360, x, y);
 
-    auto lookAround = glm::rotateY(glm::radians(-posX / rotationGain));
-    auto lookUpDown = glm::rotateX(glm::radians(-posY/rotationGain));
+    auto lookAround = glm::rotateY(glm::radians(-x / rotationGain));
+    auto lookUpDown = glm::rotateX(glm::radians(glm::max(glm::min(y / rotationGain, 89.0f), -89.0f)));
     camForward = lookAround * lookUpDown * glm::vec4 (0,0,-1, 1);
 }
 

@@ -5,6 +5,7 @@ uniform mat4 model;
 uniform float gravity_offset;
 uniform float wind_offset;
 uniform float particle_density;
+uniform vec3 perspective;
 
 out vec4 vtxColor;
 
@@ -29,7 +30,7 @@ void main()
 
     gl_Position = model * vec4(position, 1.0);
     // Adjust size of particle based on distance from center
-    float dist = pow(position.x-0.5, 2) + pow(position.y-0.5, 2); // power to keep positive
-    gl_PointSize = size * 1/(1+dist);
+    float dist = pow(perspective.x - gl_Position.x, 2) + pow(perspective.z - gl_Position.z, 2); // power to keep positive
+    gl_PointSize = size * 1/(1+dist*0.1);
     vtxColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
