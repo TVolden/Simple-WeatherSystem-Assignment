@@ -80,6 +80,7 @@ float linearSpeed = 0.15f, rotationGain = 30.0f;
 const unsigned int particleSize = 4;            // particle attributes
 const unsigned int sizeOfFloat = 4;             // bytes in a float
 const unsigned int numberOfParticles = 10000;      // number of particles
+const float particleDensity = 0.05;
 float gravityOffset = 0;
 float windOffset = 0;
 
@@ -158,8 +159,8 @@ int main()
 
         shaderProgram->use();
         drawObjects(model);
-        gravityOffset = fmod(gravityOffset + 0.25 * deltaTime, 2.0);
-        windOffset = fmod(windOffset + 0.1 * deltaTime, 2.0);
+        gravityOffset +=  0.25 * deltaTime;
+        windOffset += 0.1 * deltaTime;
         particleProgram->use();
         drawParticles(model);
 
@@ -188,12 +189,13 @@ glm::mat4 makeModel() {
 }
 
 void drawParticles(glm::mat4 model) {
-    float scale = 10;
-    glm::vec3 pos = glm::vec3(-scale/2, -scale/2, -scale/2);
-    model = model * glm::translate(camPosition+pos) * glm::scale(scale, scale, scale);;
+    float scale = 40;
+    glm::vec3 pos = glm::vec3(-scale/2, -1, -scale/2);
+    model = model * glm::translate(pos) * glm::scale(scale, scale, scale);;
     particleProgram->setMat4("model", model);
     particleProgram->setFloat("gravity_offset", gravityOffset);
     particleProgram->setFloat("wind_offset", windOffset);
+    particleProgram->setFloat("particle_density", particleDensity);
     weather.drawParticles();
 }
 
@@ -293,10 +295,10 @@ void setupParticles() {
 
     for(float i = 0; i < numberOfParticles; i++) {
         float data[particleSize];
-        data[0] = fmod(i, frag) / frag; //x;
-        data[1] = fmod(i / frag, frag) / frag; //y;
-        data[2] = i / glm::pow(frag, 2.0) / frag; //z;
-        data[3] = rand() / (float)RAND_MAX * 2.0 + 1.0; //size
+        data[0] = (rand()/(float)RAND_MAX + fmod(i, frag)) / frag; //x;
+        data[1] = fmod(rand()/(float)RAND_MAX + i / frag, frag) / frag; //y;
+        data[2] = (rand()/(float)RAND_MAX + i / glm::pow(frag, 2.0)) / frag; //z;
+        data[3] = rand() / (float)RAND_MAX * 2.0 + 2.0; //size
         glBufferSubData(GL_ARRAY_BUFFER, i * particleSize * sizeOfFloat, particleSize * sizeOfFloat, data);
     }
 
