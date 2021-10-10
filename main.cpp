@@ -162,7 +162,7 @@ int main()
 
         shaderProgram->use();
         drawObjects(model);
-        gravityOffset +=  0.25 * deltaTime;
+        gravityOffset +=  1.0 * deltaTime;
         windOffset += 0.1 * deltaTime;
         particleProgram->use();
         drawParticles(model);
@@ -197,12 +197,12 @@ void drawParticles(glm::mat4 model) {
     float scale = 40;
     glm::vec3 pos = glm::vec3(-scale/2, 0, -scale/2);
     glm::mat4 world = glm::translate(pos) * glm::scale(scale, scale, scale);
-    particleProgram->setMat4("worldModel", world);
     particleProgram->setMat4("viewModel", model);
     particleProgram->setFloat("gravity_offset", gravityOffset);
     particleProgram->setFloat("wind_offset", windOffset);
     particleProgram->setFloat("particle_density", particleDensity);
-    particleProgram->setVec3("perspective", camPosition);
+    particleProgram->setVec3("camPos", camPosition);
+    particleProgram->setVec3("camForward", camForward);
     weather.drawParticles();
 }
 
@@ -289,8 +289,11 @@ void createVertexBufferObject(){
 
 void setupParticles() {
     // initialize particle shaders
-    particleProgram = new Shader("shaders/particle.vert", "shaders/shader.frag");
+    particleProgram = new Shader("shaders/particle.vert", "shaders/particle.frag");
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+
     createVertexBufferObject();
 
     // load particles
@@ -307,12 +310,12 @@ void setupParticles() {
     for(float i = 0; i < numberOfParticles; i++) {
         float data[particleSize];
         // XYZ position of particle
-        data[0] = (rand()/(float)RAND_MAX + fmod(i, frag)) / frag; //x;
-        data[1] = fmod(rand()/(float)RAND_MAX + i / frag, frag) / frag; //y;
-        data[2] = (rand()/(float)RAND_MAX + i / glm::pow(frag, 2.0)) / frag; //z;
+        data[0] = (rand()/(float)RAND_MAX + fmod(i, frag)) / frag * 30.0; //x;
+        data[1] = fmod(rand()/(float)RAND_MAX + i / frag, frag) / frag * 30.0; //y;
+        data[2] = (rand()/(float)RAND_MAX + i / glm::pow(frag, 2.0)) / frag * 30.0; //z;
 
         // size of particle, this influences how much gravity affects the particle
-        data[3] = rand() / (float)RAND_MAX * 7.0 + 2.0;
+        data[3] = rand() / (float)RAND_MAX * 20.0 + 20.0;
 
         // Add to buffer
         glBufferSubData(GL_ARRAY_BUFFER, i * particleSize * sizeOfFloat, particleSize * sizeOfFloat, data);
