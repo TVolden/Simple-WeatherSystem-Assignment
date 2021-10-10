@@ -11,28 +11,13 @@ uniform vec3 perspective; // The position of the camera
 
 out vec4 vtxColor; // Color output for the next shader
 
+const float BOXSIZE = 1;
+
 void main()
 {
     // Setup a "velocity" vector to simulate gravity and wind
-    vec3 position = pos + vec3(wind_offset, -gravity_offset, 0) * size * particle_density;
-
-    // Wrapping particle around the y-axis
-    while (position.y < 0)
-        position.y = position.y + 1;
-    while (position.y > 1)
-        position.y = position.y - 1;
-
-    // Wrapping particle around the z-axis
-    while (position.z < 0)
-        position.z = position.z + 1;
-    while (position.z > 1)
-        position.z = position.z - 1;
-
-    // Wrapping particle around the x-axis
-    while (position.x < 0)
-        position.x = position.x + 1;
-    while (position.x > 1)
-        position.x = position.x - 1;
+    vec3 offset = vec3(wind_offset, -gravity_offset, 0) * size * particle_density;
+    vec3 position = mod(pos + offset, BOXSIZE);
 
     // Apply model to world matrix and keep it around for later
     vec4 pos_w = worldModel * vec4(position, 1.0);
