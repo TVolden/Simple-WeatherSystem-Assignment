@@ -1,7 +1,9 @@
 #version 330 core
 layout (location = 0) in vec3 pos;
 layout (location = 1) in float size;
-uniform mat4 model;
+
+uniform mat4 worldModel;
+uniform mat4 viewModel;
 uniform float gravity_offset;
 uniform float wind_offset;
 uniform float particle_density;
@@ -16,7 +18,7 @@ void main()
     while (position.y < 0)
         position.y = position.y + 1;
     while (position.y > 1)
-        position.y = position.y + 1;
+        position.y = position.y - 1;
 
     while (position.z < 0)
         position.z = position.z + 1;
@@ -28,9 +30,10 @@ void main()
     while (position.x > 1)
         position.x = position.x - 1;
 
-    gl_Position = model * vec4(position, 1.0);
+    vec4 pos_w = worldModel * vec4(position, 1.0);
+    gl_Position = viewModel * pos_w;
     // Adjust size of particle based on distance from center
-    float dist = pow(perspective.x - gl_Position.x, 2) + pow(perspective.z - gl_Position.z, 2); // power to keep positive
-    gl_PointSize = size * 1/(1+dist*0.1);
+    float dist = pow(pos_w.x - perspective.x, 2.0) + pow(pos_w.y - perspective.y, 2.0) + pow(pos_w.z - perspective.z, 2.0); // power to keep positive
+    gl_PointSize = size / (1 + dist * 0.01);
     vtxColor = vec4(1.0, 1.0, 1.0, 1.0);
 }

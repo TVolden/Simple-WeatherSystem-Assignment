@@ -192,9 +192,10 @@ glm::mat4 makeModel(GLFWwindow *window) {
 
 void drawParticles(glm::mat4 model) {
     float scale = 40;
-    glm::vec3 pos = glm::vec3(-scale/2, -1, -scale/2);
-    model = model * glm::translate(pos) * glm::scale(scale, scale, scale);;
-    particleProgram->setMat4("model", model);
+    glm::vec3 pos = glm::vec3(-scale/2, 0, -scale/2);
+    glm::mat4 world = glm::translate(pos) * glm::scale(scale, scale, scale);
+    particleProgram->setMat4("worldModel", world);
+    particleProgram->setMat4("viewModel", model);
     particleProgram->setFloat("gravity_offset", gravityOffset);
     particleProgram->setFloat("wind_offset", windOffset);
     particleProgram->setFloat("particle_density", particleDensity);
@@ -301,7 +302,7 @@ void setupParticles() {
         data[0] = (rand()/(float)RAND_MAX + fmod(i, frag)) / frag; //x;
         data[1] = fmod(rand()/(float)RAND_MAX + i / frag, frag) / frag; //y;
         data[2] = (rand()/(float)RAND_MAX + i / glm::pow(frag, 2.0)) / frag; //z;
-        data[3] = rand() / (float)RAND_MAX * 2.0 + 2.0; //size
+        data[3] = rand() / (float)RAND_MAX * 10.0 + 2.0; //size
         glBufferSubData(GL_ARRAY_BUFFER, i * particleSize * sizeOfFloat, particleSize * sizeOfFloat, data);
     }
 
