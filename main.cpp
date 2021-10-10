@@ -80,9 +80,12 @@ float linearSpeed = 0.15f, rotationGain = 30.0f;
 const unsigned int particleSize = 4;            // particle attributes
 const unsigned int sizeOfFloat = 4;             // bytes in a float
 const unsigned int numberOfParticles = 10000;      // number of particles
-const float particleDensity = 0.05;
-float gravityOffset = 0;
-float windOffset = 0;
+
+// Particle Density is useful when we need bigger particles that fall slower.
+// 0.25 is good for rain and 0.05 is good for snow.
+const float particleDensity = 0.05; // How much the size of a particle is affected by gravity
+float gravityOffset = 0; // Used to simulate gravity affecting the particles
+float windOffset = 0; // Used to simulate wind affecting the particles
 
 int main()
 {
@@ -297,12 +300,21 @@ void setupParticles() {
     // Split the space into fractions
     float frag = cbrt(numberOfParticles);
 
+    /*
+     * To evenly populate the volume evenly, every cubic fragment is populated with a particle,
+     * some randomness is added to make it look less symmetric.
+     */
     for(float i = 0; i < numberOfParticles; i++) {
         float data[particleSize];
+        // XYZ position of particle
         data[0] = (rand()/(float)RAND_MAX + fmod(i, frag)) / frag; //x;
         data[1] = fmod(rand()/(float)RAND_MAX + i / frag, frag) / frag; //y;
         data[2] = (rand()/(float)RAND_MAX + i / glm::pow(frag, 2.0)) / frag; //z;
-        data[3] = rand() / (float)RAND_MAX * 10.0 + 2.0; //size
+
+        // size of particle, this influences how much gravity affects the particle
+        data[3] = rand() / (float)RAND_MAX * 7.0 + 2.0;
+
+        // Add to buffer
         glBufferSubData(GL_ARRAY_BUFFER, i * particleSize * sizeOfFloat, particleSize * sizeOfFloat, data);
     }
 
