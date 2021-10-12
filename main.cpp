@@ -293,9 +293,9 @@ void createVertexBufferObject(){
 void setupParticles() {
     // initialize particle shaders
     particleProgram = new Shader("shaders/particle.vert", "shaders/particle.frag");
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-//    glEnable(GL_BLEND);
-//    glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
 
     createVertexBufferObject();
 
