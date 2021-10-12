@@ -28,7 +28,7 @@ struct ParticleObject{
     unsigned int vertexBufferSize;
     void drawParticles() const{
         glBindVertexArray(VAO);
-        glDrawArrays(GL_POINTS, 0, vertexBufferSize);
+        glDrawArrays(GL_LINES, 0, vertexBufferSize);
     }
 };
 
@@ -83,9 +83,10 @@ const unsigned int numberOfParticles = 10000;      // number of particles
 
 // Particle Density is useful when we need bigger particles that fall slower.
 // 0.25 is good for rain and 0.05 is good for snow.
-const float particleDensity = 0.05; // How much the size of a particle is affected by gravity
-float gravityOffset = 0; // Used to simulate gravity affecting the particles
-float windOffset = 0; // Used to simulate wind affecting the particles
+const float particleDensity = 0.5; // How much the size/length of a particle is affected by gravity
+float offset = 0;
+glm::vec3 particleVelocity = -glm::vec3(0.1, 1.0, 0.0);
+glm::mat4 previousModel = glm::mat4(1);
 
 int main()
 {
@@ -162,10 +163,11 @@ int main()
 
         shaderProgram->use();
         drawObjects(model);
-        gravityOffset +=  1.0 * deltaTime;
-        windOffset += 0.1 * deltaTime;
+        offset += deltaTime;
         particleProgram->use();
         drawParticles(model);
+
+        previousModel = model;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -198,8 +200,9 @@ void drawParticles(glm::mat4 model) {
     glm::vec3 pos = glm::vec3(-scale/2, 0, -scale/2);
     glm::mat4 world = glm::translate(pos) * glm::scale(scale, scale, scale);
     particleProgram->setMat4("viewModel", model);
-    particleProgram->setFloat("gravity_offset", gravityOffset);
-    particleProgram->setFloat("wind_offset", windOffset);
+    particleProgram->setMat4("preViewModel", previousModel);
+    particleProgram->setVec3("velocity", particleVelocity);
+    particleProgram->setFloat("offset", offset);
     particleProgram->setFloat("particle_density", particleDensity);
     particleProgram->setVec3("camPos", camPosition);
     particleProgram->setVec3("camForward", camForward);
@@ -307,18 +310,19 @@ void setupParticles() {
      * To evenly populate the volume evenly, every cubic fragment is populated with a particle,
      * some randomness is added to make it look less symmetric.
      */
-    for(float i = 0; i < numberOfParticles; i++) {
+    for(float i = 0; i < numberOfParticles; i+=2) {
         float data[particleSize];
         // XYZ position of particle
-        data[0] = (rand()/(float)RAND_MAX + fmod(i, frag)) / frag * 30.0; //x;
-        data[1] = fmod(rand()/(float)RAND_MAX + i / frag, frag) / frag * 30.0; //y;
-        data[2] = (rand()/(float)RAND_MAX + i / glm::pow(frag, 2.0)) / frag * 30.0; //z;
+        data[0] = (rand()/(float)RAND_MAX + fmod(i, frag)) / frag * 30.0; // x
+        data[1] = fmod(rand()/(float)RAND_MAX + i / frag, frag) / frag * 30.0; // y
+        data[2] = (rand()/(float)RAND_MAX + i / glm::pow(frag, 2.0)) / frag * 30.0; // z
 
         // size of particle, this influences how much gravity affects the particle
         data[3] = rand() / (float)RAND_MAX * 20.0 + 20.0;
 
         // Add to buffer
         glBufferSubData(GL_ARRAY_BUFFER, i * particleSize * sizeOfFloat, particleSize * sizeOfFloat, data);
+        glBufferSubData(GL_ARRAY_BUFFER, (i + 1) * particleSize * sizeOfFloat, particleSize * sizeOfFloat, data);
     }
 
     weather.vertexBufferSize = numberOfParticles;
