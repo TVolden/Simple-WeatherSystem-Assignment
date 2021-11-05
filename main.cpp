@@ -79,11 +79,11 @@ glm::vec3 camPosition(.0f, 1.6f, 0.0f);
 float linearSpeed = 0.15f, rotationGain = 30.0f;
 const unsigned int particleSize = 4;            // particle attributes
 const unsigned int sizeOfFloat = 4;             // bytes in a float
-const unsigned int numberOfParticles = 10000;      // number of particles
+const unsigned int numberOfParticles = 30000;      // number of particles
 
 // Particle Density is useful when we need bigger particles that fall slower.
 // 0.25 is good for rain and 0.05 is good for snow.
-const float particleDensity = 0.5; // How much the size/length of a particle is affected by gravity
+const float particleDensity = 0.25; // How much the size/length of a particle is affected by gravity
 float offset = 0;
 glm::vec3 particleVelocity = -glm::vec3(0.1, 1.0, 0.0);
 glm::mat4 previousModel = glm::mat4(1);
